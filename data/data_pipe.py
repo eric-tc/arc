@@ -22,8 +22,9 @@ def get_train_dataset(imgs_folder):
         trans.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
     ])
     ds = ImageFolder(imgs_folder, train_transform)
-    class_num = ds[-1][1] + 1
-    return ds, class_num
+    #class_num = ds[-1][1] + 1
+    class_num = ds.classes
+    return ds, len(class_num)
 
 def get_train_loader(conf):
     # conf.data_mode e emore

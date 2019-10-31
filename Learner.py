@@ -17,6 +17,8 @@ import bcolz
 class face_learner(object):
     def __init__(self, conf, inference=False):
         print(conf)
+        print(conf.use_mobilfacenet)
+        input("CONF")
         if conf.use_mobilfacenet:
             self.model = MobileFaceNet(conf.embedding_size).to(conf.device)
             print('MobileFaceNet model generated')
@@ -56,8 +58,9 @@ class face_learner(object):
             print(self.optimizer)
 #             self.scheduler = optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, patience=40, verbose=True)
 
-            print('optimizers generated')    
-            self.board_loss_every = len(self.loader)//100
+            print('optimizers generated')
+            # Parametri che indicano ogni quanto salvare i modelli e le epoche
+            self.board_loss_every = len(self.loader)//10
             self.evaluate_every = len(self.loader)//10
             self.save_every = len(self.loader)//5
             print("DATASET")
@@ -202,20 +205,44 @@ class face_learner(object):
             if e == self.milestones[2]:
                 self.schedule_lr()                                 
             for imgs, labels in tqdm(iter(self.loader)):
+
+                # Trasferisce le immagini alla gpu
                 imgs = imgs.to(conf.device)
                 labels = labels.to(conf.device)
+
+
                 self.optimizer.zero_grad()
 
+
+                # Trovo gli embeddings del modello
+                # embeddings[batch_size,embedding]
+                # per ogni immagine ho 512 embedding
                 embeddings = self.model(imgs)
+                #print("EMBEDDINGD")
+                #print(imgs.size())
+                #print(embeddings.size())
+
+
 
                 thetas = self.head(embeddings, labels)
+
+                #print("THETA")
+                #print (thetas.size())
+
+                #input("MODEL SIZE")
+
                 loss = conf.ce_loss(thetas, labels)
+
+
                 loss.backward()
                 running_loss += loss.item()
                 self.optimizer.step()
                 
                 if self.step % self.board_loss_every == 0 and self.step != 0:
+
                     loss_board = running_loss / self.board_loss_every
+
+                    #print("LOSS TRAIN {}".format(loss_board))
                     self.writer.add_scalar('train_loss', loss_board, self.step)
                     running_loss = 0.
                 
@@ -237,7 +264,7 @@ class face_learner(object):
     def schedule_lr(self):
         for params in self.optimizer.param_groups:                 
             params['lr'] /= 10
-        print(self.optimizer)
+        #print(self.optimizer)
     
     def infer(self, conf, faces, target_embs, tta=False):
         '''

@@ -7,7 +7,7 @@ from torchvision import transforms as trans
 def get_config(training = True):
     conf = edict()
     conf.data_path = Path('/media/velab/dati/')
-    conf.work_path = Path('work_space/')
+    conf.work_path = Path('/media/velab/dati/faces_emore/')
     conf.model_path = conf.work_path/'models'
     conf.log_path = conf.work_path/'log'
     conf.save_path = conf.work_path/'save'

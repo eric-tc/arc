@@ -48,7 +48,7 @@ def get_train_loader(conf):
         class_num = vgg_class_num + ms1m_class_num
     elif conf.data_mode == 'emore':
         # utilizzo la cartella /faces_emore/imgs che contiene tutte le classi con le immagini
-        ds, class_num = get_train_dataset(conf.emore_folder/'imgs')
+        ds, class_num = get_train_dataset(conf.emore_folder/'img')
 
     # pin_memory velocizza le operazioni di caricamento se eseguo il training sulla gpu
     # ds e un image folder

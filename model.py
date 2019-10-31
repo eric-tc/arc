@@ -12,8 +12,24 @@ class Flatten(Module):
         return input.view(input.size(0), -1)
 
 def l2_norm(input,axis=1):
+
+
+    # il numero di colonne della matrice corrisponde al numero di classi
+    # input[batch_size,class_number]
+    # input[x1, .. , x_tot_class]
+    #      [                    ]
+    #      [                    ]
+    #      [x_batch_size        ]
+
+    # Normalizzando su dim=0 normalizzo sulle colonne che corrispondono a tutti i valori della stessa classe rispetto a
+    # tutte le immagini contenute nella batch size
     norm = torch.norm(input,2,axis,True)
+
+    #print("NORM SIZE")
+    #print(norm.size())
+    #per ottenere i valori normalizzati divido il vettore per il valore di normalizzazione
     output = torch.div(input, norm)
+
     return output
 
 class SEModule(Module):
@@ -247,6 +263,8 @@ class Arcface(Module):
         # aggiunto direttamente ai model.parameters
         self.kernel = Parameter(torch.Tensor(embedding_size,classnum))
         # initial kernel
+        # crea un kernel di dimensione [embedding_size,classnum]
+        # renorm p,d, maxnorm
         self.kernel.data.uniform_(-1, 1).renorm_(2,1,1e-5).mul_(1e5)
         self.m = m # the margin value, default is 0.5
         self.s = s # scalar value default is 64, see normface https://arxiv.org/abs/1704.06369
@@ -257,15 +275,45 @@ class Arcface(Module):
     def forward(self, embbedings, label):
         # weights norm
         nB = len(embbedings)
+
+        #print(self.kernel.size())
+
+
+
+        # ritorna il valore normalizzato sulle colonne della matrice
         kernel_norm = l2_norm(self.kernel,axis=0)
+
+
+
         # cos(theta+m)
+        #print("EMBEDDING LOSS")
+        #print(embbedings.size())
+
+        # per ogni immagine nella batch 200 la matrice contiene 51 valori di theta relative alle classi
+        # in pratica per ogni immagine la matrice contiene i valori di theta per ciascuna classe di uscita
         cos_theta = torch.mm(embbedings,kernel_norm)
-#         output = torch.mm(embbedings,kernel_norm)
+        #print("THETA")
+        #print(cos_theta.size())
+
+        #input("test")
+
+        #
+        #
+        #   output = torch.mm(embbedings,kernel_norm)
+
+        # se un valore e <-1 il valore diventa -1 lo stesso >1 diventa 1
         cos_theta = cos_theta.clamp(-1,1) # for numerical stability
+
+        # elevo alla potenza i valori di theta
         cos_theta_2 = torch.pow(cos_theta, 2)
+
         sin_theta_2 = 1 - cos_theta_2
+
         sin_theta = torch.sqrt(sin_theta_2)
+
+
         cos_theta_m = (cos_theta * self.cos_m - sin_theta * self.sin_m)
+
         # this condition controls the theta+m should in range [0, pi]
         #      0<=theta+m<=pi
         #     -m<=theta<=pi-m
@@ -274,8 +322,22 @@ class Arcface(Module):
         keep_val = (cos_theta - self.mm) # when theta not in [0,pi], use cosface instead
         cos_theta_m[cond_mask] = keep_val[cond_mask]
         output = cos_theta * 1.0 # a little bit hacky way to prevent in_place operation on cos_theta
+
         idx_ = torch.arange(0, nB, dtype=torch.long)
+
+        #print(idx_.size())
+        #print(label)
+
+
+        # per trovare i valori di theta corrispondenti alla classe utilizzo gli indici delle label
+        # label e un array contentete gli indici della classe
+        # cos_theta matrice contenete tutti i valori di theta di ciascuna classe.
+        # nella matrice cos_theta per ogni colonna devo selezionare solo gli indici corrispondenti alla classe selezionata
+        # cioe esattamente gli indici corrispondenti nella classe label
         output[idx_, label] = cos_theta_m[idx_, label]
+
+        #print(output.size())
+        #input("CLASSI")
         output *= self.s # scale up in order to make softmax work, first introduced in normface
         return output
 

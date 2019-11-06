@@ -65,8 +65,8 @@ class face_learner(object):
             self.save_every = len(self.loader)//5
             print("DATASET")
             print(self.loader.dataset.root)
-            # ritornano gli array e le labels delle diverse cartelle del dataset
-            self.agedb_30, self.cfp_fp, self.lfw, self.agedb_30_issame, self.cfp_fp_issame, self.lfw_issame = get_val_data(self.loader.dataset.root.parent)
+            # ritornano gli array e le labels delle diverse cartelle del dataset VALIDATION
+            self.agedb_30 ,self.agedb_30_issame = get_val_data(self.loader.dataset.root.parent)
         else:
             self.threshold = conf.threshold
     
@@ -249,10 +249,10 @@ class face_learner(object):
                 if self.step % self.evaluate_every == 0 and self.step != 0:
                     accuracy, best_threshold, roc_curve_tensor = self.evaluate(conf, self.agedb_30, self.agedb_30_issame)
                     self.board_val('agedb_30', accuracy, best_threshold, roc_curve_tensor)
-                    accuracy, best_threshold, roc_curve_tensor = self.evaluate(conf, self.lfw, self.lfw_issame)
-                    self.board_val('lfw', accuracy, best_threshold, roc_curve_tensor)
-                    accuracy, best_threshold, roc_curve_tensor = self.evaluate(conf, self.cfp_fp, self.cfp_fp_issame)
-                    self.board_val('cfp_fp', accuracy, best_threshold, roc_curve_tensor)
+                    #accuracy, best_threshold, roc_curve_tensor = self.evaluate(conf, self.lfw, self.lfw_issame)
+                    #self.board_val('lfw', accuracy, best_threshold, roc_curve_tensor)
+                    #accuracy, best_threshold, roc_curve_tensor = self.evaluate(conf, self.cfp_fp, self.cfp_fp_issame)
+                    #self.board_val('cfp_fp', accuracy, best_threshold, roc_curve_tensor)
                     self.model.train()
                 if self.step % self.save_every == 0 and self.step != 0:
                     self.save_state(conf, accuracy)

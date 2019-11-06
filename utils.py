@@ -154,8 +154,8 @@ def draw_box_name(bbox,name,frame):
                     name,
                     (bbox[0],bbox[1]), 
                     cv2.FONT_HERSHEY_SIMPLEX, 
-                    2,
+                    1,
                     (0,255,0),
-                    3,
+                    2,
                     cv2.LINE_AA)
     return frame

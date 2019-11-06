@@ -18,6 +18,7 @@ def de_preprocess(tensor):
 def get_train_dataset(imgs_folder):
     train_transform = trans.Compose([
         trans.RandomHorizontalFlip(),
+        trans.Resize((112,112)),
         trans.ToTensor(),
         trans.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
     ])
@@ -48,7 +49,7 @@ def get_train_loader(conf):
         class_num = vgg_class_num + ms1m_class_num
     elif conf.data_mode == 'emore':
         # utilizzo la cartella /faces_emore/imgs che contiene tutte le classi con le immagini
-        ds, class_num = get_train_dataset(conf.emore_folder/'img')
+        ds, class_num = get_train_dataset(conf.emore_folder/'DatasetCrop')
 
     # pin_memory velocizza le operazioni di caricamento se eseguo il training sulla gpu
     # ds e un image folder
@@ -89,12 +90,19 @@ def get_val_pair(path, name):
     issame = np.load(path/'{}_list.npy'.format(name))
     return carray, issame
 
+# def get_val_data(data_path):
+#     #bcolz,labels
+#     agedb_30, agedb_30_issame = get_val_pair(data_path, 'agedb_30')
+#     cfp_fp, cfp_fp_issame = get_val_pair(data_path, 'cfp_fp')
+#     lfw, lfw_issame = get_val_pair(data_path, 'lfw')
+#     return agedb_30, cfp_fp, lfw, agedb_30_issame, cfp_fp_issame, lfw_issame
+
 def get_val_data(data_path):
     #bcolz,labels
     agedb_30, agedb_30_issame = get_val_pair(data_path, 'agedb_30')
-    cfp_fp, cfp_fp_issame = get_val_pair(data_path, 'cfp_fp')
-    lfw, lfw_issame = get_val_pair(data_path, 'lfw')
-    return agedb_30, cfp_fp, lfw, agedb_30_issame, cfp_fp_issame, lfw_issame
+    #cfp_fp, cfp_fp_issame = get_val_pair(data_path, 'cfp_fp')
+    #lfw, lfw_issame = get_val_pair(data_path, 'lfw')
+    return agedb_30 ,agedb_30_issame
 
 def load_mx_rec(rec_path):
     save_path = rec_path/'imgs'

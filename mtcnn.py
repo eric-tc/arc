@@ -8,6 +8,7 @@ from mtcnn_pytorch.src.first_stage import run_first_stage
 from mtcnn_pytorch.src.align_trans import get_reference_facial_points, warp_and_crop_face
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 # device = 'cpu'
+from mtcnn_pytorch.src.visualization_utils import show_bboxes
 
 class MTCNN():
     def __init__(self):
@@ -27,6 +28,10 @@ class MTCNN():
     
     def align_multi(self, img, limit=None, min_face_size=30.0):
         boxes, landmarks = self.detect_faces(img, min_face_size)
+        img_bounding=show_bboxes(img,boxes,landmarks)
+        #img_bounding.show()
+        #input("image")
+
         if limit:
             boxes = boxes[:limit]
             landmarks = landmarks[:limit]
